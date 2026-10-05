@@ -396,16 +396,26 @@ function uploadPhoto() {
 function showDressCode() {
     showInfoModal(
         "Código de Vestimenta",
-        `<p>Vestimenta formal: vestidos y trajes.</p>
-         <div class="no-green-note">
-            <span class="no-green-swatch" aria-hidden="true"></span>
-            <p>El color verde esmeralda está reservado exclusivamente para la quinceañera. Se solicita amablemente a los invitados evitar su uso.</p>
+        `<p class="dress-type">Semi formal</p>
+         <p>Los colores <strong>rosa</strong> y <strong>verde</strong> están reservados exclusivamente para la quinceañera. Agradecemos amablemente a nuestros invitados elegir otros tonos para su vestuario.</p>
+         <div class="banned-colors">
+            <div class="banned-item"><span class="banned-swatch" style="background:#f2a6c4" aria-hidden="true"></span><small>Rosa</small></div>
+            <div class="banned-item"><span class="banned-swatch" style="background:#7fc79a" aria-hidden="true"></span><small>Verde</small></div>
          </div>`
     );
 }
 
+function showNotice() {
+    showInfoModal(
+        "Aviso Importante",
+        `<p>Con mucho cariño, esta celebración ha sido pensada para que la quinceañera comparta una noche especial junto a sus amigos.</p>
+         <p>Por tal motivo, les informamos respetuosamente que <strong>no se permitirá la asistencia de niños</strong> durante el evento.</p>
+         <p class="notice-thanks">Agradecemos de corazón su comprensión.</p>`
+    );
+}
+
 function showGifts() {
-    // Enlace de ejemplo, reemplazar por la página real de regalos/cuenta
+    window.open('https://invitacionesdigital-04.github.io/Lainy-numerodecuenta/', '_blank');
 }
 
 function confirmAttendance() {
