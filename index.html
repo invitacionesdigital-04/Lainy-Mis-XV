@@ -1,502 +1,200 @@
-// Variables globales
-let isPlaying = false;
-let player = null;
-let playerReady = false;
-let currentSlide = 0;
-let totalSlides = 0;
-let enableMusic = false;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lainy Anyelis - Mis XV Años</title>
+    <link rel="stylesheet" href="CCSB.css?v=31">
+</head>
+<body>
+    <div class="main-center">
+        <!-- Modal de Bienvenida -->
+        <div id="welcomeModal" class="modal-overlay">
+            <div class="welcome-hero">
+                <h1 class="welcome-title">Bienvenidos a la invitación<br/>de los XV años de<br/>Lainy Anyelis</h1>
+                <p class="welcome-note">La música de fondo es parte de la experiencia</p>
+                <div class="welcome-actions">
+                    <button id="enterWithMusic" class="btn-gold" onclick="enterWithMusicClick()">Ingresar con música</button>
+                    <button id="enterWithoutMusic" class="btn-gold-outline" onclick="enterWithoutMusicClick()">Ingresar sin música</button>
+                </div>
+            </div>
+        </div>
 
-// Funciones globales para los botones del modal
-function enterWithMusicClick() {
-    enableMusic = true;
-    const modal = document.getElementById('welcomeModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    activateMusic();
-}
+        <!-- Reproductor de música -->
+        <div id="musicPlayer" class="music-player" style="display: none;">
+            <button id="musicToggle" class="music-button modern-icon" title="Reproducir/Pausar música">
+                <svg id="volumeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#222" stroke="#fff" stroke-width="1"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.08" stroke="#222" stroke-width="2"></path>
+                    <circle cx="6.5" cy="12" r="1" fill="#ffe27a"/>
+                </svg>
+            </button>
+            <div id="youtube-player" style="position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></div>
+        </div>
 
-function enterWithoutMusicClick() {
-    enableMusic = false;
-    const modal = document.getElementById('welcomeModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    deactivateMusic();
-}
+        <!-- ============ PORTADA ============ -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="scroll-indicator">
+                    <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-spacer"></div>
 
-// El player arranca SIEMPRE en mute apenas está listo (el autoplay muteado
-// nunca lo bloquea ningún navegador, incluido Safari). Elegir "con música"
-// solo necesita QUITAR el mute -- eso sí es válido dentro de un click sin
-// importar si el player ya estaba listo antes del clic o recién terminó de
-// cargar; no depende del mismo tick síncrono como sí lo exige arrancar audio
-// desde cero, que es lo que fallaba antes cuando el usuario tocaba el botón
-// antes de que la API de YouTube terminara de cargar.
-function activateMusic() {
-    const musicPlayer = document.getElementById('musicPlayer');
-    if (musicPlayer) musicPlayer.style.display = 'block';
-    if (playerReady && player) {
-        player.unMute();
-        player.setVolume(100);
-        player.playVideo();
-        isPlaying = true;
-        updateMusicIcon();
-    }
-    // Si el player todavía no estaba listo, el primer toque en la página
-    // (ver unlockAudioOnGesture) quita el mute dentro de un gesto real.
-}
+        <!-- Content -->
+        <div class="content">
 
-// iPhone/Android solo dejan sonar el audio si el unMute ocurre durante un
-// toque del usuario. Si el player cargó DESPUÉS de "Ingresar con música",
-// el primer toque/scroll en la página activa el sonido.
-function unlockAudioOnGesture() {
-    if (!enableMusic || !playerReady || !player) return;
-    try {
-        if (player.isMuted()) { player.unMute(); player.setVolume(100); }
-        if (player.getPlayerState() !== 1) player.playVideo();
-        isPlaying = true;
-        updateMusicIcon();
-    } catch (e) {}
-}
-['touchstart','click','keydown'].forEach(function (ev) {
-    document.addEventListener(ev, unlockAudioOnGesture, { passive: true });
-});
+        <!-- ============ COUNTDOWN ============ -->
+        <section class="countdown-section">
+            <h2 class="section-title">Falta</h2>
+            <div class="countdown-container">
+                <div class="countdown-item"><div class="countdown-number" id="days">00</div><div class="countdown-label">DÍAS</div></div>
+                <div class="countdown-item"><div class="countdown-number" id="hours">00</div><div class="countdown-label">HORAS</div></div>
+                <div class="countdown-item"><div class="countdown-number" id="minutes">00</div><div class="countdown-label">MINUTOS</div></div>
+                <div class="countdown-item"><div class="countdown-number" id="seconds">00</div><div class="countdown-label">SEGUNDOS</div></div>
+            </div>
+            <div class="firefly" style="right:14%;bottom:6px"></div>
+        </section>
+        <div class="seam-divider-wrap"><div class="seam-divider"><span class="line"></span><span class="ornament">✦</span><span class="line right"></span></div></div>
 
-function deactivateMusic() {
-    if (playerReady && player) {
-        player.pauseVideo();
-    }
-}
+        <!-- ============ CELEBRACIÓN (única tarjeta, sin Misa) ============ -->
+        <section class="events-section">
+            <div class="firefly" style="left:20%;top:8px;animation-delay:1s"></div>
+            <div class="firefly" style="right:16%;bottom:6px;animation-delay:.5s"></div>
+            <div class="events-container">
+                <div class="event-card">
+                    <div class="event-icon"><img src="assets/lotus-icon.png" alt=""></div>
+                    <h3 class="event-title">Celebración</h3>
+                    <div class="event-details">
+                        <h4>Día</h4>
+                        <p>Sábado 28 de Noviembre - 8:00pm</p>
+                    </div>
+                    <div class="event-details">
+                        <h4>Lugar</h4>
+                        <p>Calle U #15, Prado Oriental</p>
+                        <p class="event-address">San Isidro, Santo Domingo Este</p>
+                    </div>
+                    <button class="btn-wedding" onclick="openLocation('celebration')">¿Cómo llegar?</button>
+                </div>
+            </div>
+        </section>
+        <div class="seam-divider-wrap"><div class="seam-divider"><span class="line"></span><span class="ornament">✦</span><span class="line right"></span></div></div>
 
-// Función para configurar los botones directamente
-function setupModalButtons() {
-    const enterWithMusic = document.getElementById('enterWithMusic');
-    const enterWithoutMusic = document.getElementById('enterWithoutMusic');
-    const modal = document.getElementById('welcomeModal');
+        <!-- ============ GALERÍA / CARRUSEL ============ -->
+        <section class="gallery-section">
+            <div class="firefly" style="left:30%;top:8px;animation-delay:1.6s"></div>
+            <div class="firefly" style="right:22%;bottom:6px;animation-delay:.8s"></div>
+            <div class="gallery-container">
+                <h2 class="section-title">Momentos Para Atesorar</h2>
+                <p class="section-subtitle">Cada fotografía es un paso más en el camino hacia mis quince años</p>
+                <div class="camera-icon"><span class="icon-badge"><svg width="52" height="52" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.2 5.5V4.6A1.6 1.6 0 0 1 7.8 3h12.6A1.6 1.6 0 0 1 22 4.6v10.2a1.6 1.6 0 0 1-1.6 1.6h-1.6" fill="none" stroke="#f0d78a" stroke-width="1.4"/><rect x="2" y="6.5" width="16.5" height="14" rx="1.8" fill="#d6b35a"/><path d="M3.8 18.6 8.2 13.4l3 3.1 2.1-2.1 3.4 4.2z" fill="#17352d"/><circle cx="13.4" cy="10.4" r="1.7" fill="#17352d"/></svg></span>
+                </div>
+                <div class="carousel-container">
+                  <button class="carousel-btn carousel-prev" id="prevBtn">❮</button>
+                  <div class="carousel-track-container">
+                    <div class="carousel-track" id="carouselTrack">
+                      <div class="carousel-item"><img class="framed-photo" src="foto1.jpg" alt="Foto de Lainy Anyelis"></div>
+                      <div class="carousel-item"><img class="framed-photo" src="foto2.jpg" alt="Foto de Lainy Anyelis"></div>
+                      <div class="carousel-item"><img class="framed-photo" src="foto3.jpg" alt="Foto de Lainy Anyelis"></div>
+                      <div class="carousel-item"><img class="framed-photo" src="foto4.jpg" alt="Foto de Lainy Anyelis"></div>
+                    </div>
+                  </div>
+                  <button class="carousel-btn carousel-next" id="nextBtn">❯</button>
+                </div>
+                <div class="carousel-counter"><span id="currentSlide">1</span> / <span id="totalSlides">4</span> fotos</div>
+            </div>
+        </section>
+        <div class="seam-divider-wrap"><div class="seam-divider"><span class="line"></span><span class="ornament">✦</span><span class="line right"></span></div></div>
 
-    if (enterWithMusic) {
-        enterWithMusic.onclick = function() {
-            enableMusic = true;
-            if (modal) modal.style.display = 'none';
-            activateMusic();
-        };
-    }
+        <!-- ============ FIESTA ============ -->
+        <section class="party-section">
+            <div class="firefly" style="left:18%;top:8px;animation-delay:1.2s"></div>
+            <div class="firefly" style="right:24%;bottom:6px;animation-delay:.3s"></div>
+            <div class="party-container">
+                <h2 class="section-title">Fiesta</h2>
+                <p class="section-subtitle">Hagamos juntos una fiesta épica. Aquí algunos detalles a tener en cuenta.</p>
+                <div class="party-grid">
+                    <div class="party-card">
+                        <div class="party-icon"><span class="icon-badge"><svg width="52" height="52" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 6h5l1.3 1.8h2.9a1.8 1.8 0 0 1 1.8 1.8v8.6a1.8 1.8 0 0 1-1.8 1.8H3.8A1.8 1.8 0 0 1 2 18.2V9.6a1.8 1.8 0 0 1 1.8-1.8h3.4z" fill="#d6b35a"/><circle cx="10.8" cy="13.6" r="3.6" fill="#17352d"/><circle cx="10.8" cy="13.6" r="2.2" fill="#f0d78a"/><circle cx="19" cy="5" r="4.2" fill="#f0d78a" stroke="#17352d" stroke-width="1"/><path d="M19 7.2V3M17.2 4.8 19 3l1.8 1.8" fill="none" stroke="#17352d" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+                        <h3>Comparte tus Fotos</h3>
+                        <p>Ayúdanos a reunir los recuerdos de este día compartiendo tus fotografías del momento</p>
+                        <button class="btn-wedding" onclick="uploadPhoto()">Subir fotos</button>
+                    </div>
+                    <div class="party-card">
+                        <div class="party-icon"><span class="icon-badge"><svg width="58" height="58" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 7.2c0-.9.9-1.5 1.7-1.1L10 9.3v5.4l-6.3 3.2c-.8.4-1.7-.2-1.7-1.1z" fill="#d6b35a"/><path d="M22 7.2c0-.9-.9-1.5-1.7-1.1L14 9.3v5.4l6.3 3.2c.8.4 1.7-.2 1.7-1.1z" fill="#d6b35a"/><rect x="9.6" y="8.8" width="4.8" height="6.4" rx="1.4" fill="#f0d78a" stroke="#17352d" stroke-width=".8"/><path d="M4.5 9.5 8 11.2M4.5 14.5 8 12.8M19.5 9.5 16 11.2M19.5 14.5 16 12.8" stroke="#17352d" stroke-width=".8" stroke-linecap="round" opacity=".5"/></svg></span></div>
+                        <h3>Código de Vestimenta</h3>
+                        <p>Semi formal</p>
+                        <button class="btn-wedding" onclick="showDressCode()">Ver más</button>
+                    </div>
+                    <div class="party-card notice-card">
+                        <div class="party-icon"><span class="icon-badge"><svg width="54" height="54" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 2.5h10l4 4v14a1.5 1.5 0 0 1-1.5 1.5h-12A1.5 1.5 0 0 1 4 20.5V4a1.5 1.5 0 0 1 1-1.5z" fill="#d6b35a"/><path d="M15 2.5v4h4" fill="#f0d78a"/><path d="M7 10h8M7 13.2h8M7 16.4h5" stroke="#17352d" stroke-width="1.2" stroke-linecap="round"/><circle cx="18" cy="18" r="4.6" fill="#e6483c" stroke="#17352d" stroke-width="1"/><path d="M18 15.6v3" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="18" cy="20.4" r=".9" fill="#fff"/></svg></span></div>
+                        <h3>Aviso Importante</h3>
+                        <p>Información que agradecemos tener en cuenta</p>
+                        <button class="btn-wedding" onclick="showNotice()">Leer aviso</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="seam-divider-wrap"><div class="seam-divider"><span class="line"></span><span class="ornament">✦</span><span class="line right"></span></div></div>
 
-    if (enterWithoutMusic) {
-        enterWithoutMusic.onclick = function() {
-            enableMusic = false;
-            if (modal) modal.style.display = 'none';
-            deactivateMusic();
-        };
-    }
-}
+        <!-- ============ REGALOS (con cocodrilo) ============ -->
+        <section class="gifts-section">
+            <div class="firefly" style="left:16%;top:10px;animation-delay:1.4s"></div>
+            <div class="gifts-container">
+                <h2 class="section-title">Regalos</h2>
+                <p class="section-subtitle">Si deseas regalarme algo más que tu hermosa presencia.</p>
+                <div class="gift-icon"><span class="icon-badge"><svg width="52" height="52" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2C10.4 4 6.2 4 6.6 6.7 6.9 8.3 9.6 8.2 12 8.2zM12 8.2c1.6-4.2 5.8-4.2 5.4-1.5-.3 1.6-3 1.5-5.4 1.5z" fill="#f0d78a" stroke="#17352d" stroke-width=".8"/><rect x="2.8" y="8.2" width="18.4" height="4.2" rx="1" fill="#d6b35a"/><rect x="4.2" y="12.4" width="15.6" height="9" rx="1" fill="#d6b35a"/><rect x="10.9" y="8.2" width="2.2" height="13.2" fill="#17352d"/><path d="M4.2 12.4h15.6" stroke="#17352d" stroke-width=".8"/></svg></span></div>
+                <button class="btn-wedding" onclick="showGifts()">Ver más</button>
+            </div>
+            <div class="croc-decor"><img src="assets/crocodile.png" alt=""></div>
+        </section>
+        <div class="seam-divider-wrap"><div class="seam-divider"><span class="line"></span><span class="ornament">✦</span><span class="line right"></span></div></div>
 
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    // console.log('DOM cargado, inicializando...');
-    initializeCountdown();
-    initializeCarousel();
-    setupModalButtons();
+        <!-- ============ RSVP + FOOTER (misma imagen de fondo) ============ -->
+        <div class="rsvp-footer-wrap">
+            <section class="rsvp-section">
+                <div class="firefly" style="left:22%;top:12px;animation-delay:.9s"></div>
+                <div class="rsvp-container">
+                    <h2 class="section-title">Confirma tu Asistencia</h2>
+                    <p class="section-subtitle">Comparte este hermoso momento conmigo</p>
+                    <div class="whatsapp-icon">
+                        <svg width="58" height="58" viewBox="0 0 32 32" aria-hidden="true"><path fill="#25D366" d="M16.01 3C8.83 3 3 8.82 3 15.99c0 2.29.6 4.53 1.74 6.5L3 29l6.68-1.7a13 13 0 0 0 6.33 1.62h.01C23.18 28.92 29 23.1 29 15.93 29 8.76 23.18 3 16.01 3z"/><path fill="#fff" d="M16.01 5.2c5.95 0 10.79 4.82 10.79 10.75 0 5.94-4.84 10.77-10.8 10.77-1.9 0-3.75-.5-5.37-1.45l-.39-.23-3.96 1.01 1.06-3.86-.25-.4A10.67 10.67 0 0 1 5.2 15.99C5.2 10.03 10.05 5.2 16.01 5.2z"/><path fill="#25D366" d="M12.3 10.1c-.24-.53-.49-.54-.72-.55h-.61c-.21 0-.56.08-.85.4-.29.32-1.12 1.09-1.12 2.66s1.15 3.09 1.31 3.3c.16.21 2.22 3.55 5.48 4.84 2.71 1.07 3.26.86 3.85.8.59-.05 1.9-.78 2.17-1.53.27-.75.27-1.39.19-1.53-.08-.13-.29-.21-.61-.37-.32-.16-1.9-.94-2.19-1.04-.29-.11-.51-.16-.72.16-.21.32-.83 1.04-1.01 1.25-.19.21-.37.24-.69.08-.32-.16-1.35-.5-2.57-1.59-.95-.85-1.59-1.9-1.78-2.22-.19-.32-.02-.49.14-.65.14-.14.32-.37.48-.56.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.7-1.74-.98-2.37z"/></svg>
+                    </div>
+                    <a class="btn-wedding btn-whatsapp" href="https://wa.me/18093160645?text=Hola%2C%20confirmo%20mi%20asistencia%20a%20los%20XV%20a%C3%B1os%20de%20Lainy%20Anyelis%20el%2028%20de%20noviembre." target="_blank" rel="noopener">Confirmar por WhatsApp</a>
+                </div>
+            </section>
 
-    // Mostrar el modal de bienvenida para elegir con/sin música
-    const modal = document.getElementById('welcomeModal');
-    if (modal) {
-        modal.style.display = 'flex';
-    }
+            <div class="divider">
+                <span class="line"></span>
+                <span class="ornament">✦</span>
+                <span class="line right"></span>
+            </div>
 
-    // Se precarga el player de YouTube desde el inicio (no en el click) para
-    // que playVideo() pueda ejecutarse de forma síncrona dentro del gesto del
-    // usuario en enterWithMusicClick(). Esto es lo que exige iOS Safari.
-    loadYouTubeAPI();
-});
+            <footer class="footer">
+                <div class="footer-content">
+                    <p>Con cariño,</p>
+                    <h3>Lainy Anyelis</h3>
+                    <p class="footer-date">28 de Noviembre, 2026</p>
+                </div>
+                <div class="frog-decor"><img src="assets/frog.png" alt=""></div>
+            </footer>
+        </div>
 
-// También configurar cuando la página esté completamente cargada
-window.addEventListener('load', function() {
-    // console.log('Ventana completamente cargada');
-    setupModalButtons();
-});
+        </div>
 
+        <!-- Toast notification -->
+        <div id="toast" class="toast"><div id="toastContent"></div></div>
 
+        <!-- Ventana flotante de información (Dress Code) -->
+        <div id="infoModal" class="modal-overlay">
+            <div class="info-modal-box">
+                <h3 id="infoModalTitle" class="info-modal-title"></h3>
+                <div id="infoModalBody" class="info-modal-body"></div>
+                <button class="btn-gold-outline" onclick="closeInfoModal()">Cerrar</button>
+            </div>
+        </div>
 
-// Cargar la API de YouTube
-function loadYouTubeAPI() {
-    const script = document.createElement('script');
-    script.src = 'https://www.youtube.com/iframe_api';
-    document.body.appendChild(script);
-    window.onYouTubeIframeAPIReady = initializeYouTubePlayer;
-}
-
-// Función llamada por la API de YouTube
-function initializeYouTubePlayer() {
-    if (player) return; // ya inicializado, evita crear el player dos veces
-
-    player = new YT.Player('youtube-player', {
-        height: '200',
-        width: '200',
-        videoId: 'ZCIfs_aTZEg',
-        playerVars: {
-            autoplay: 1,
-            mute: 1,
-            controls: 0,
-            disablekb: 1,
-            fs: 0,
-            loop: 1,
-            modestbranding: 1,
-            playsinline: 1,
-            rel: 0,
-            showinfo: 0,
-            iv_load_policy: 3,
-            playlist: 'ZCIfs_aTZEg',
-            origin: window.location.origin
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange,
-            'onError': onPlayerError
-        }
-    });
-}
-
-function onPlayerReady(event) {
-    playerReady = true;
-    const musicPlayer = document.getElementById('musicPlayer');
-    const musicToggle = document.getElementById('musicToggle');
-
-    if (musicToggle) {
-        musicToggle.addEventListener('click', toggleMusic);
-    }
-
-    // Arranca siempre muteado en cuanto está listo -- el autoplay muteado no
-    // lo bloquea ningún navegador. Así, cuando el usuario elige "con música"
-    // (haya sido antes o después de este momento), activateMusic() solo
-    // necesita quitar el mute, que sí es una acción permitida sin gesto nuevo
-    // porque el video ya está en reproducción.
-    event.target.mute();
-    event.target.playVideo();
-
-    if (enableMusic) {
-        // El usuario ya había elegido "con música" antes de que el player
-        // terminara de cargar -- lo desmuteamos apenas se puede.
-        event.target.unMute();
-        isPlaying = true;
-        if (musicPlayer) musicPlayer.style.display = 'block';
-        updateMusicIcon();
-    } else {
-        isPlaying = false;
-    }
-}
-
-function onPlayerStateChange(event) {
-    if (event.data === YT.PlayerState.PLAYING) {
-        isPlaying = true;
-    } else if (event.data === YT.PlayerState.PAUSED) {
-        isPlaying = false;
-    }
-    updateMusicIcon();
-}
-
-function onPlayerError(event) {
-    // 101 / 150 = el dueño del video no permite reproducirlo fuera de YouTube
-    console.warn('YouTube error', event && event.data,
-        (event && (event.data === 101 || event.data === 150)) ? '→ el video no permite inserción (embed)' : '');
-    const musicPlayer = document.getElementById('musicPlayer');
-    if (musicPlayer) musicPlayer.style.display = 'block';
-    isPlaying = false;
-    updateMusicIcon();
-}
-
-function toggleMusic() {
-    if (!player || !playerReady) return;
-    if (isPlaying && !player.isMuted()) {
-        player.pauseVideo();
-        isPlaying = false;
-    } else {
-        enableMusic = true;
-        player.unMute();
-        player.setVolume(100);
-        player.playVideo();
-        isPlaying = true;
-    }
-    updateMusicIcon();
-}
-
-function updateMusicIcon() {
-    const volumeIcon = document.getElementById('volumeIcon');
-    
-    if (volumeIcon) {
-        if (isPlaying) {
-            volumeIcon.innerHTML = `
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#222" stroke="#fff" stroke-width="1"></polygon>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.08" stroke="#222" stroke-width="2"></path>
-                <circle cx="6.5" cy="12" r="1" fill="#ffe27a"/>
-            `;
-        } else {
-            volumeIcon.innerHTML = `
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#222" stroke="#fff" stroke-width="1"></polygon>
-                <line x1="19" y1="9" x2="17" y2="11" stroke="#ff6b6b" stroke-width="2"></line>
-                <line x1="17" y1="9" x2="19" y2="11" stroke="#ff6b6b" stroke-width="2"></line>
-                <circle cx="6.5" cy="12" r="1" fill="#ff6b6b"/>
-            `;
-        }
-    }
-}
-
-// Countdown
-function initializeCountdown() {
-    const targetDate = new Date('2026-11-28T20:00:00-04:00').getTime();
-    
-    function updateCountdown() {
-        const now = new Date().getTime();
-        const difference = targetDate - now;
-        
-        if (difference > 0) {
-            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-            
-            document.getElementById('days').textContent = days.toString().padStart(2, '0');
-            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
-        } else {
-            document.getElementById('days').textContent = '00';
-            document.getElementById('hours').textContent = '00';
-            document.getElementById('minutes').textContent = '00';
-            document.getElementById('seconds').textContent = '00';
-        }
-    }
-    
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-}
-
-// Carrusel
-function initializeCarousel() {
-    const track = document.getElementById('carouselTrack');
-    const nextBtn = document.getElementById('nextBtn');
-    const prevBtn = document.getElementById('prevBtn');
-
-    if (!track) return;
-
-    // calcular total dinámicamente
-    const items = track.querySelectorAll('.carousel-item');
-    totalSlides = items.length;
-    const totalSlidesElement = document.getElementById('totalSlides');
-    if (totalSlidesElement) totalSlidesElement.textContent = totalSlides;
-
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            currentSlide = (currentSlide + 1) % totalSlides;
-            updateCarousel();
-        });
-    }
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-            updateCarousel();
-        });
-    }
-
-    // Ajuste inicial para asegurar cálculo correcto tras el render
-    updateCarousel();
-    requestAnimationFrame(updateCarousel);
-    setTimeout(updateCarousel, 200);
-
-    // Auto-play del carrusel
-    setInterval(() => {
-        nextSlide();
-    }, 2500);
-}
-
-function updateCarousel() {
-    const track = document.getElementById('carouselTrack');
-    if (track) {
-        const items = track.querySelectorAll('.carousel-item');
-        if (!items.length) return;
-        const container = track.parentElement;
-
-        // Temporarily reset transform to measure actual positions
-        const previousTransform = track.style.transform;
-        track.style.transform = 'none';
-
-        const firstRect = items[0].getBoundingClientRect();
-        const secondRect = items[1] ? items[1].getBoundingClientRect() : null;
-        const stepWidth = Math.max(1, secondRect ? Math.round(secondRect.left - firstRect.left) : Math.round(firstRect.width));
-
-        const containerWidth = Math.round(container.getBoundingClientRect().width);
-        const visibleCount = Math.max(1, Math.floor((containerWidth + 1) / stepWidth));
-        const maxIndex = Math.max(0, totalSlides - visibleCount);
-
-        // Detectar si esta actualización implica dar la vuelta (última foto -> primera, o viceversa)
-        let wrapped = false;
-        if (currentSlide > maxIndex) { currentSlide = 0; wrapped = true; }
-        if (currentSlide < 0) { currentSlide = maxIndex; wrapped = true; }
-
-        const trackRect = track.getBoundingClientRect();
-        const baseLeft = Math.round(firstRect.left - trackRect.left);
-        const translateXpx = -Math.round(baseLeft + (currentSlide * stepWidth));
-
-        if (wrapped) {
-            // Salto instantáneo al dar la vuelta, para que no se vea "regresando"
-            // animado hacia atrás por todas las fotos.
-            track.style.transition = 'none';
-            track.style.transform = `translateX(${translateXpx}px)`;
-            void track.offsetHeight; // forzar reflow antes de reactivar la transición
-            requestAnimationFrame(() => {
-                track.style.transition = '';
-            });
-        } else {
-            track.style.transform = `translateX(${translateXpx}px)`;
-        }
-        // console.log('Carousel moved to slide:', { currentSlide, visibleCount, maxIndex, translateXpx, stepWidth, baseLeft, wrapped });
-    }
-    updateSlideCounter();
-    markCenterCarouselItem();
-}
-
-function nextSlide() {
-    currentSlide++;
-    updateCarousel();
-}
-
-function previousSlide() {
-    currentSlide--;
-    updateCarousel();
-}
-
-function updateSlideCounter() {
-    const currentSlideElement = document.getElementById('currentSlide');
-    const totalSlidesElement = document.getElementById('totalSlides');
-    if (currentSlideElement) currentSlideElement.textContent = (currentSlide + 1);
-    if (totalSlidesElement) totalSlidesElement.textContent = totalSlides;
-}
-
-// Mark center carousel item on desktop
-function markCenterCarouselItem() {
-    const track = document.getElementById('carouselTrack');
-    if (!track) return;
-    const items = Array.from(track.querySelectorAll('.carousel-item'));
-    if (!items.length) return;
-    items.forEach(it => it.classList.remove('is-center'));
-
-    const firstItem = items[0];
-    const container = track.parentElement;
-    const itemWidth = firstItem.getBoundingClientRect().width;
-    const containerWidth = container.getBoundingClientRect().width;
-    const visibleCount = Math.max(1, Math.floor(containerWidth / itemWidth));
-
-    const centerIndex = (currentSlide + Math.floor(visibleCount / 2)) % items.length;
-    items[centerIndex].classList.add('is-center');
-}
-
-// Hook into carousel updates
-const _origUpdateCarousel = typeof updateCarousel === 'function' ? updateCarousel : null;
-if (_origUpdateCarousel) {
-    window.updateCarousel = function() {
-        _origUpdateCarousel();
-        markCenterCarouselItem();
-    };
-}
-
-window.addEventListener('resize', markCenterCarouselItem);
-
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(markCenterCarouselItem, 200);
-});
-
-// Funciones de los botones (plantilla de ejemplo: sin enlaces reales)
-function openLocation(location) {
-    window.open('https://maps.google.com/maps?q=18.4901572%2C-69.7982917&z=17&hl=es', '_blank');
-}
-
-function uploadPhoto() {
-    window.open('https://photos.app.goo.gl/9EtN4a4RmarUqqmH9', '_blank');
-}
-
-function showDressCode() {
-    showInfoModal(
-        "Código de Vestimenta",
-        `<p class="dress-type">Semi formal</p>
-         <p>Los colores <strong>rosa</strong> y <strong>verde</strong> están reservados exclusivamente para la quinceañera. Agradecemos amablemente a nuestros invitados elegir otros tonos para su vestuario.</p>
-         <div class="banned-colors">
-            <div class="banned-item"><span class="banned-swatch" style="background:#f2a6c4" aria-hidden="true"></span><small>Rosa</small></div>
-            <div class="banned-item"><span class="banned-swatch" style="background:#7fc79a" aria-hidden="true"></span><small>Verde</small></div>
-         </div>`
-    );
-}
-
-function showNotice() {
-    showInfoModal(
-        "Aviso Importante",
-        `<p>Con mucho cariño, esta celebración ha sido pensada para que la quinceañera comparta una noche especial junto a sus amigos.</p>
-         <p>Por tal motivo, les informamos respetuosamente que <strong>no se permitirá la asistencia de niños</strong> durante el evento.</p>
-         <p class="notice-thanks">Agradecemos de corazón su comprensión.</p>`
-    );
-}
-
-function showGifts() {
-    window.open('https://invitacionesdigital-04.github.io/Lainy-numerodecuenta/', '_blank');
-}
-
-function confirmAttendance() {
-    const msg = encodeURIComponent('Hola, confirmo mi asistencia a los XV años de Lainy Anyelis el 28 de noviembre.');
-    window.open('https://wa.me/18093160645?text=' + msg, '_blank');
-}
-
-// Modal de información (ventana flotante reutilizable, ej. Dress Code)
-function showInfoModal(title, bodyHtml) {
-    const modal = document.getElementById('infoModal');
-    const titleEl = document.getElementById('infoModalTitle');
-    const bodyEl = document.getElementById('infoModalBody');
-    if (!modal || !titleEl || !bodyEl) return;
-    titleEl.textContent = title;
-    bodyEl.innerHTML = bodyHtml;
-    modal.style.display = 'flex';
-}
-
-function closeInfoModal() {
-    const modal = document.getElementById('infoModal');
-    if (modal) modal.style.display = 'none';
-}
-
-// Sistema de Toast
-function showToast(title, message) {
-    const toast = document.getElementById('toast');
-    const toastContent = document.getElementById('toastContent');
-    
-    toastContent.innerHTML = `
-        <h4 style="font-weight: 700; color: #fff; margin-bottom: 0.35rem; letter-spacing: 0.2px;">${title}</h4>
-        <p style="color: #ddd;">${message}</p>
-    `;
-    
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 4000);
-}
-
-// Nota: el efecto de portada ahora se logra 100% con CSS (hero fijo detrás
-// del contenido, ver .hero-section y .content en CCSB.css), igual que en
-// boda100L. Ya no hace falta mover nada por JS en el scroll.
-
-
-// Forzar limpieza de caches en clientes antiguos
-(function() {
-  function clearCaches() {
-    if ('caches' in window) {
-      caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(() => {});
-    }
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(reg => reg.unregister());
-      }).catch(() => {});
-    }
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', clearCaches);
-  } else {
-    clearCaches();
-  }
-})();
+        <script src="JAVAB.js?v=31" defer></script>
+</body>
+</html>
