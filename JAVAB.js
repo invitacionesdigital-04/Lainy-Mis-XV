@@ -1,7 +1,5 @@
 // Variables globales
 let isPlaying = false;
-let player = null;
-let playerReady = false;
 let currentSlide = 0;
 let totalSlides = 0;
 let enableMusic = false;
@@ -25,48 +23,36 @@ function enterWithoutMusicClick() {
     deactivateMusic();
 }
 
-// El player arranca SIEMPRE en mute apenas está listo (el autoplay muteado
-// nunca lo bloquea ningún navegador, incluido Safari). Elegir "con música"
-// solo necesita QUITAR el mute -- eso sí es válido dentro de un click sin
-// importar si el player ya estaba listo antes del clic o recién terminó de
-// cargar; no depende del mismo tick síncrono como sí lo exige arrancar audio
-// desde cero, que es lo que fallaba antes cuando el usuario tocaba el botón
-// antes de que la API de YouTube terminara de cargar.
+function getAudio() {
+    return document.getElementById('bgMusic');
+}
+
+// Se llama DIRECTAMENTE dentro del toque en "Ingresar con música":
+// así Safari (iPhone) y Chrome permiten que suene.
 function activateMusic() {
+    const audio = getAudio();
     const musicPlayer = document.getElementById('musicPlayer');
     if (musicPlayer) musicPlayer.style.display = 'block';
-    if (playerReady && player) {
-        player.unMute();
-        player.setVolume(100);
-        player.playVideo();
-        isPlaying = true;
-        updateMusicIcon();
+    if (!audio) return;
+    audio.volume = 1;
+    const p = audio.play();
+    if (p && p.then) {
+        p.then(function () { isPlaying = true; updateMusicIcon(); })
+         .catch(function () { isPlaying = false; updateMusicIcon(); });
+    } else {
+        isPlaying = true; updateMusicIcon();
     }
-    // Si el player todavía no estaba listo, el primer toque en la página
-    // (ver unlockAudioOnGesture) quita el mute dentro de un gesto real.
 }
-
-// iPhone/Android solo dejan sonar el audio si el unMute ocurre durante un
-// toque del usuario. Si el player cargó DESPUÉS de "Ingresar con música",
-// el primer toque/scroll en la página activa el sonido.
-function unlockAudioOnGesture() {
-    if (!enableMusic || !playerReady || !player) return;
-    try {
-        if (player.isMuted()) { player.unMute(); player.setVolume(100); }
-        if (player.getPlayerState() !== 1) player.playVideo();
-        isPlaying = true;
-        updateMusicIcon();
-    } catch (e) {}
-}
-['touchstart','click','keydown'].forEach(function (ev) {
-    document.addEventListener(ev, unlockAudioOnGesture, { passive: true });
-});
 
 function deactivateMusic() {
-    if (playerReady && player) {
-        player.pauseVideo();
-    }
+    const audio = getAudio();
+    if (audio) audio.pause();
+    isPlaying = false;
+    const musicPlayer = document.getElementById('musicPlayer');
+    if (musicPlayer) musicPlayer.style.display = 'block';
+    updateMusicIcon();
 }
+
 
 // Función para configurar los botones directamente
 function setupModalButtons() {
@@ -104,10 +90,14 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = 'flex';
     }
 
-    // Se precarga el player de YouTube desde el inicio (no en el click) para
-    // que playVideo() pueda ejecutarse de forma síncrona dentro del gesto del
-    // usuario en enterWithMusicClick(). Esto es lo que exige iOS Safari.
-    loadYouTubeAPI();
+    // Música local (assets/musica.mp3): arranca SOLO con "Ingresar con música".
+    const toggle = document.getElementById('musicToggle');
+    if (toggle) toggle.addEventListener('click', toggleMusic);
+    const audio = getAudio();
+    if (audio) {
+        audio.addEventListener('play', function () { isPlaying = true; updateMusicIcon(); });
+        audio.addEventListener('pause', function () { isPlaying = false; updateMusicIcon(); });
+    }
 });
 
 // También configurar cuando la página esté completamente cargada
@@ -118,106 +108,15 @@ window.addEventListener('load', function() {
 
 
 
-// Cargar la API de YouTube
-function loadYouTubeAPI() {
-    const script = document.createElement('script');
-    script.src = 'https://www.youtube.com/iframe_api';
-    document.body.appendChild(script);
-    window.onYouTubeIframeAPIReady = initializeYouTubePlayer;
-}
-
-// Función llamada por la API de YouTube
-function initializeYouTubePlayer() {
-    if (player) return; // ya inicializado, evita crear el player dos veces
-
-    player = new YT.Player('youtube-player', {
-        height: '200',
-        width: '200',
-        videoId: 'ZCIfs_aTZEg',
-        playerVars: {
-            autoplay: 1,
-            mute: 1,
-            controls: 0,
-            disablekb: 1,
-            fs: 0,
-            loop: 1,
-            modestbranding: 1,
-            playsinline: 1,
-            rel: 0,
-            showinfo: 0,
-            iv_load_policy: 3,
-            playlist: 'ZCIfs_aTZEg',
-            origin: window.location.origin
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange,
-            'onError': onPlayerError
-        }
-    });
-}
-
-function onPlayerReady(event) {
-    playerReady = true;
-    const musicPlayer = document.getElementById('musicPlayer');
-    const musicToggle = document.getElementById('musicToggle');
-
-    if (musicToggle) {
-        musicToggle.addEventListener('click', toggleMusic);
-    }
-
-    // Arranca siempre muteado en cuanto está listo -- el autoplay muteado no
-    // lo bloquea ningún navegador. Así, cuando el usuario elige "con música"
-    // (haya sido antes o después de este momento), activateMusic() solo
-    // necesita quitar el mute, que sí es una acción permitida sin gesto nuevo
-    // porque el video ya está en reproducción.
-    event.target.mute();
-    event.target.playVideo();
-
-    if (enableMusic) {
-        // El usuario ya había elegido "con música" antes de que el player
-        // terminara de cargar -- lo desmuteamos apenas se puede.
-        event.target.unMute();
-        isPlaying = true;
-        if (musicPlayer) musicPlayer.style.display = 'block';
-        updateMusicIcon();
-    } else {
-        isPlaying = false;
-    }
-}
-
-function onPlayerStateChange(event) {
-    if (event.data === YT.PlayerState.PLAYING) {
-        isPlaying = true;
-    } else if (event.data === YT.PlayerState.PAUSED) {
-        isPlaying = false;
-    }
-    updateMusicIcon();
-}
-
-function onPlayerError(event) {
-    // 101 / 150 = el dueño del video no permite reproducirlo fuera de YouTube
-    console.warn('YouTube error', event && event.data,
-        (event && (event.data === 101 || event.data === 150)) ? '→ el video no permite inserción (embed)' : '');
-    const musicPlayer = document.getElementById('musicPlayer');
-    if (musicPlayer) musicPlayer.style.display = 'block';
-    isPlaying = false;
-    updateMusicIcon();
-}
-
 function toggleMusic() {
-    if (!player || !playerReady) return;
-    if (isPlaying && !player.isMuted()) {
-        player.pauseVideo();
-        isPlaying = false;
-    } else {
+    const audio = getAudio();
+    if (!audio) return;
+    if (audio.paused) {
         enableMusic = true;
-        player.unMute();
-        player.setVolume(100);
-        player.playVideo();
-        isPlaying = true;
+        audio.play().catch(function () {});
+    } else {
+        audio.pause();
     }
-    updateMusicIcon();
 }
 
 function updateMusicIcon() {
