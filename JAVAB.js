@@ -37,14 +37,30 @@ function activateMusic() {
     if (musicPlayer) musicPlayer.style.display = 'block';
     if (playerReady && player) {
         player.unMute();
+        player.setVolume(100);
         player.playVideo();
         isPlaying = true;
         updateMusicIcon();
     }
-    // Si el player todavía no está listo, onPlayerReady revisa `enableMusic`
-    // y hace el unMute() apenas se cree -- sigue sonando sin necesitar un
-    // nuevo gesto porque el video ya viene reproduciéndose (muteado) de fondo.
+    // Si el player todavía no estaba listo, el primer toque en la página
+    // (ver unlockAudioOnGesture) quita el mute dentro de un gesto real.
 }
+
+// iPhone/Android solo dejan sonar el audio si el unMute ocurre durante un
+// toque del usuario. Si el player cargó DESPUÉS de "Ingresar con música",
+// el primer toque/scroll en la página activa el sonido.
+function unlockAudioOnGesture() {
+    if (!enableMusic || !playerReady || !player) return;
+    try {
+        if (player.isMuted()) { player.unMute(); player.setVolume(100); }
+        if (player.getPlayerState() !== 1) player.playVideo();
+        isPlaying = true;
+        updateMusicIcon();
+    } catch (e) {}
+}
+['touchstart','click','keydown'].forEach(function (ev) {
+    document.addEventListener(ev, unlockAudioOnGesture, { passive: true });
+});
 
 function deactivateMusic() {
     if (playerReady && player) {
@@ -115,8 +131,8 @@ function initializeYouTubePlayer() {
     if (player) return; // ya inicializado, evita crear el player dos veces
 
     player = new YT.Player('youtube-player', {
-        height: '1',
-        width: '1',
+        height: '200',
+        width: '200',
         videoId: 'ZCIfs_aTZEg',
         playerVars: {
             autoplay: 1,
@@ -130,7 +146,8 @@ function initializeYouTubePlayer() {
             rel: 0,
             showinfo: 0,
             iv_load_policy: 3,
-            playlist: 'ZCIfs_aTZEg'
+            playlist: 'ZCIfs_aTZEg',
+            origin: window.location.origin
         },
         events: {
             'onReady': onPlayerReady,
@@ -179,24 +196,28 @@ function onPlayerStateChange(event) {
 }
 
 function onPlayerError(event) {
-    console.log('Error al cargar el video de YouTube');
+    // 101 / 150 = el dueño del video no permite reproducirlo fuera de YouTube
+    console.warn('YouTube error', event && event.data,
+        (event && (event.data === 101 || event.data === 150)) ? '→ el video no permite inserción (embed)' : '');
     const musicPlayer = document.getElementById('musicPlayer');
-    musicPlayer.style.display = 'block';
+    if (musicPlayer) musicPlayer.style.display = 'block';
     isPlaying = false;
     updateMusicIcon();
 }
 
 function toggleMusic() {
-    if (player) {
-        if (isPlaying) {
-            player.pauseVideo();
-            isPlaying = false;
-        } else {
-            player.playVideo();
-            isPlaying = true;
-        }
-        updateMusicIcon();
+    if (!player || !playerReady) return;
+    if (isPlaying && !player.isMuted()) {
+        player.pauseVideo();
+        isPlaying = false;
+    } else {
+        enableMusic = true;
+        player.unMute();
+        player.setVolume(100);
+        player.playVideo();
+        isPlaying = true;
     }
+    updateMusicIcon();
 }
 
 function updateMusicIcon() {
